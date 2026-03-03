@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Trading Management</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+
+body{
+    height:100vh;
+    background: linear-gradient(150deg, #77B04B 50%, #E87B2F 50%);
+}
+
+/* LOGIN */
+#loginPage{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.loginBox{
+    width:350px;
+    padding:40px;
+    background:white;
+    border-radius:25px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+    text-align:center;
+}
+
+.loginBox input{
+    width:100%;
+    padding:12px;
+    margin:10px 0;
+    border-radius:8px;
+    border:1px solid #ccc;
+}
+
+.loginBox button{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    background:#E87B2F;
+    color:white;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+/* DASHBOARD */
+#dashboard{
+    display:none;
+}
+
+.navbar{
+    background:black;
+    padding:20px;
+    display:flex;
+    justify-content:space-around;
+    align-items:center;
+    border-radius:0 0 25px 25px;
+}
+
+.navbar button{
+    padding:10px 25px;
+    border:none;
+    font-weight:bold;
+    color:white;
+    cursor:pointer;
+    border-radius:5px;
+}
+
+.homeBtn{background:#77B04B;}
+.cardsBtn{background:#E87B2F;}
+.formsBtn{background:#FFC107;}
+.tradesBtn{background:#6F42C1;}
+.logoutBtn{background:red;}
+
+.content{
+    padding:40px;
+    color:white;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:15px;
+    margin-bottom:20px;
+    color:black;
+}
+
+.tradeForm input{
+    padding:10px;
+    margin:5px;
+    border-radius:5px;
+    border:1px solid #ccc;
+}
+
+.tradeForm button{
+    padding:10px 20px;
+    background:#77B04B;
+    border:none;
+    color:white;
+    border-radius:5px;
+    cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="loginPage">
+    <div class="loginBox">
+        <h2>Trading Login</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+        <p id="loginError" style="color:red;margin-top:10px;"></p>
+    </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+
+    <div class="navbar">
+        <button class="homeBtn" onclick="showSection('home')">HOME</button>
+        <button class="cardsBtn" onclick="showSection('cards')">Cards</button>
+        <button class="formsBtn" onclick="showSection('forms')">Forms</button>
+        <button class="tradesBtn" onclick="showSection('trades')">Trades</button>
+        <button class="logoutBtn" onclick="logout()">EJECT</button>
+    </div>
+
+    <div class="content">
+
+        <div id="homeSection">
+            <h2>Welcome <span id="currentUser"></span> 📈</h2>
+            <div class="card">
+                <h3>Total Trades</h3>
+                <p id="totalTrades">0</p>
+            </div>
+        </div>
+
+        <div id="cardsSection" style="display:none;">
+            <div class="card">
+                <h3>Account Balance</h3>
+                <p>$10,000</p>
+            </div>
+            <div class="card">
+                <h3>Win Rate</h3>
+                <p>75%</p>
+            </div>
+        </div>
+
+        <div id="formsSection" style="display:none;">
+            <div class="card">
+                <h3>Submit Request</h3>
+                <input type="text" placeholder="Enter Request">
+                <button>Submit</button>
+            </div>
+        </div>
+
+        <div id="tradesSection" style="display:none;">
+            <div class="card">
+                <h3>Add Trade</h3>
+                <div class="tradeForm">
+                    <input type="text" id="pair" placeholder="Pair (BTC/USD)">
+                    <input type="text" id="type" placeholder="Buy / Sell">
+                    <input type="number" id="profit" placeholder="Profit/Loss">
+                    <button onclick="addTrade()">Add</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Trade History</h3>
+                <ul id="tradeList"></ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+
+// USERS
+let users = [
+    {username:"admin", password:"1234"},
+    {username:"trader1", password:"1111"},
+    {username:"trader2", password:"2222"},
+    {username:"trader3", password:"3333"},
+    {username:"trader4", password:"4444"},
+    {username:"trader5", password:"5555"},
+    {username:"trader6", password:"6666"},
+    {username:"trader7", password:"7777"},
+    {username:"trader8", password:"8888"},
+    {username:"trader9", password:"9999"},
+    {username:"manager", password:"0000"}
+];
+
+let tradesByUser = {};
+let loggedInUser = null;
+
+// LOGIN
+function login(){
+    let userInput = document.getElementById("username").value;
+    let passInput = document.getElementById("password").value;
+
+    let validUser = users.find(u => 
+        u.username === userInput && u.password === passInput
+    );
+
+    if(validUser){
+        loggedInUser = validUser.username;
+
+        if(!tradesByUser[loggedInUser]){
+            tradesByUser[loggedInUser] = [];
+        }
+
+        document.getElementById("currentUser").innerText = loggedInUser;
+        document.getElementById("loginPage").style.display="none";
+        document.getElementById("dashboard").style.display="block";
+        document.getElementById("loginError").innerText="";
+        updateTradeDisplay();
+    } else {
+        document.getElementById("loginError").innerText="Invalid Login!";
+    }
+}
+
+// LOGOUT
+function logout(){
+    loggedInUser = null;
+    document.getElementById("dashboard").style.display="none";
+    document.getElementById("loginPage").style.display="flex";
+    document.getElementById("username").value="";
+    document.getElementById("password").value="";
+}
+
+// SWITCH SECTIONS
+function showSection(section){
+    document.getElementById("homeSection").style.display="none";
+    document.getElementById("cardsSection").style.display="none";
+    document.getElementById("formsSection").style.display="none";
+    document.getElementById("tradesSection").style.display="none";
+
+    document.getElementById(section+"Section").style.display="block";
+}
+
+// ADD TRADE
+function addTrade(){
+    let pair = document.getElementById("pair").value;
+    let type = document.getElementById("type").value;
+    let profit = document.getElementById("profit").value;
+
+    if(pair==="" || type==="" || profit==="") return;
+
+    tradesByUser[loggedInUser].push({pair,type,profit});
+    updateTradeDisplay();
+
+    document.getElementById("pair").value="";
+    document.getElementById("type").value="";
+    document.getElementById("profit").value="";
+}
+
+// UPDATE DISPLAY
+function updateTradeDisplay(){
+    let tradeList = document.getElementById("tradeList");
+    tradeList.innerHTML="";
+
+    let userTrades = tradesByUser[loggedInUser];
+
+    userTrades.forEach(t=>{
+        let li = document.createElement("li");
+        li.innerText = t.pair + " | " + t.type + " | $" + t.profit;
+        tradeList.appendChild(li);
+    });
+
+    document.getElementById("totalTrades").innerText = userTrades.length;
+}
+
+</script>
+
+</body>
+</html>
